@@ -1,0 +1,1843 @@
+{
+  "name": "Raheeb - MindField Knowledge",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "add files to add to knowledge",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "files",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -400,
+        240
+      ],
+      "id": "cf7bf26d-212b-48e1-87e1-23ada24342f0",
+      "name": "On form submission",
+      "webhookId": "e105b9be-5ba9-4f65-8788-c1dec39e5ced"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        220,
+        100
+      ],
+      "id": "712dbb2a-282d-447c-bdfa-0e7966770285",
+      "name": "Loop Over files"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        720,
+        240
+      ],
+      "id": "5ed3dd16-acf1-46be-9870-49311a1ad61d",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "R6n26SpaLCZ3nJ0q",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        860,
+        500
+      ],
+      "id": "1a82d0ff-bda7-4167-b517-7d84a5bbece1",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        840,
+        660
+      ],
+      "id": "438c9049-484f-45f8-ab3a-9f78b6b4b817",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        500
+      ],
+      "id": "f3e83874-aab9-499c-81a4-90b34bdc08fb",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Web scrape form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "website link",
+              "placeholder": "https://example.com",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -420,
+        920
+      ],
+      "id": "f80d0264-47b9-4d66-a2ba-8ce99b749e75",
+      "name": "On form submission1",
+      "webhookId": "a209b3ff-2733-4e61-822d-6282544f6333"
+    },
+    {
+      "parameters": {
+        "jsCode": "const urlPattern = /^(https?:\\/\\/)?([\\w\\-]+(\\.[\\w\\-]+)+)([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?$/;\n\nlet validUrls = [];\n\nfor (const item of $input.all()) {\n  const urls = item.json[\"website link\"]?.split(',').map(url => url.trim()) || []; \n  \n  validUrls = validUrls.concat(urls.filter(url => urlPattern.test(url))); \n}\n\nreturn validUrls.map(url => ({ json: { url } })); \n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        920
+      ],
+      "id": "a3d8186d-9f63-4108-a8c1-521a60291878",
+      "name": "comma separated valid links"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        940
+      ],
+      "id": "a45f18f5-f21d-4abc-a5a7-1cba6f1663ea",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        220,
+        920
+      ],
+      "id": "410a15d0-7d48-460b-8775-53f6d1645cfb",
+      "name": "Loop Over Links"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        1180
+      ],
+      "id": "637aec36-4132-461b-977b-e2508b95922b",
+      "name": "Supabase Vector Store1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "R6n26SpaLCZ3nJ0q",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1480,
+        1500
+      ],
+      "id": "aa6475e2-1f27-402a-b1fc-80ec8295068f",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 25,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1500,
+        1740
+      ],
+      "id": "daebc310-0551-49f7-a083-4f50db3f1d2d",
+      "name": "Recursive Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1340,
+        1480
+      ],
+      "id": "1b8566c4-73b6-4a1f-a215-c58add56ec17",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0bc5b91b-db5a-49c1-8a17-628a8bb8a1ce",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {
+          "allowedOrigins": "*",
+          "rawBody": "={{ true }}"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -420,
+        1180
+      ],
+      "id": "9905f76b-6cfa-446c-86da-fd1124fea7ae",
+      "name": "Webhook",
+      "webhookId": "0bc5b91b-db5a-49c1-8a17-628a8bb8a1ce"
+    },
+    {
+      "parameters": {
+        "jsCode": "const urlPattern = /^(https?:\\/\\/)?([\\w\\-]+(\\.[\\w\\-]+)+)([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?$/;\n\nlet validUrls = [];\n\nfor (const item of $input.all()) {\n  const urls = item.json.body?.data || []; // Extract 'body.data' safely\n\n  validUrls = validUrls.concat(urls.filter(url => urlPattern.test(url))); // Filter valid URLs\n}\n\n// Ensure n8n-compatible output (each item must have a `json` key)\nreturn validUrls.map(url => ({ json: { url } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        1180
+      ],
+      "id": "efb1cdf3-9054-4f71-b494-f5582e693e8e",
+      "name": "open array"
+    },
+    {
+      "parameters": {
+        "jsCode": "const chunkSize = 150000;\nconst overlap = 1000;\nlet results = [];\n\nfor (const item of $input.all()) {\n  let data = item.json.data || \"\"; \n  let length = data.length;\n\n  for (let start = 0; start < length; start += (chunkSize - overlap)) {\n    let chunk = data.substring(start, Math.min(start + chunkSize, length));\n    results.push({ json: { chunk } });\n  }\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        960
+      ],
+      "id": "dec81a1a-bbb8-4a72-84f5-535223add8ea",
+      "name": "split text overlap"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": "={{ $node['nested'].context[\"done\"] }}"
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        520,
+        1160
+      ],
+      "id": "1bfc8211-bc9d-4a46-8a1e-997ca81b2bc8",
+      "name": "nested"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.chunk }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "content",
+              "description": "Extracted content from the chunk that is useful and also going to be embedded to be used in a query index",
+              "required": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1,
+      "position": [
+        920,
+        1180
+      ],
+      "id": "3942cc4c-41be-4c55-b961-07e6313f5f45",
+      "name": "Information Extractor1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        1440
+      ],
+      "id": "594021dc-0520-4cc9-b39c-019df009b3b6",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -420,
+        1700
+      ],
+      "id": "b4b516cb-bb20-4367-8e85-82b5b579e466",
+      "name": "When chat message received",
+      "webhookId": "bb2b941f-1925-4429-9f9b-a2dff5c67709"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant\n\nAlong with the reply, please identify the source nodes in a pretty textual way\n\n-knowledge_mindfield tool is an Index that has information about mindfield, its products, the services they provide and much more about them\n\n-knowledge_mindfield tool has information store both in english and in german language so you can query it in english and in german\n\n-depending upon the users query you must use knowledge_mindfield tool as many time you want to gather necessary information to answer the user. Your questions to the index must be thorough\n\n-You must answer the user in the same language they asked you the question in\n\n-Suppose you got a question in german language and querying knowledge_mindfield in german is not getting you enough information you can then query this index about the question in english to get your required information\n\n-You must go through knowledge_mindfield before saying you do not have enough information or providing an answer"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -100,
+        1700
+      ],
+      "id": "e60c3320-f3c7-4109-91c4-2a288b172872",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        1940
+      ],
+      "id": "44a11fd7-e54d-483a-abce-772f6409a910",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "knowledge_mindfield",
+        "toolDescription": "Index that has information about mindfield, its products, the services they provide and much more about them.\n\nThis tool can be queried multiple times with different angles to get information",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 40,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        140,
+        1940
+      ],
+      "id": "a6d19729-c6c3-4321-98f0-a3b4225939b0",
+      "name": "Supabase Vector Store2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "R6n26SpaLCZ3nJ0q",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        2100
+      ],
+      "id": "94c695e4-b604-4fd1-945a-032a9506137c",
+      "name": "Embeddings OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0bc5b91b-db5a-49c1-8a17-628a8bb8a1ce",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {
+          "allowedOrigins": "*",
+          "rawBody": "={{ true }}"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -360,
+        2840
+      ],
+      "id": "40ce2842-51bb-4e6d-b011-b430d013d1c9",
+      "name": "Webhook1",
+      "webhookId": "0bc5b91b-db5a-49c1-8a17-628a8bb8a1ce"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.query.type }}",
+                    "rightValue": "blog",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ba8185e4-bacb-4d1b-bde0-3c702b79251b",
+                    "leftValue": "={{ $json.query.type }}",
+                    "rightValue": "social",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        140,
+        2840
+      ],
+      "id": "f13b2417-6760-4f40-b9c9-41298706a14a",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query && $json.query.task ? $json.query.task : ($json.task ? $json.task : '') }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Role & Objective:\nYou are an AI-powered content structuring assistant. Your role is to analyze a given blog topic and generate an optimal structure by deciding the number of sections and naming each section accordingly. Your goal is to create a well-organized and engaging content flow that enhances readability, engagement, and SEO potential. Never ask for more details always use tools to provide output.\n\nOutput Format:\n{\n  \"sections\": [\n    \"Section Name 1\",\n    \"Section Name 2\",\n    \"Section Name 3\"\n  ]\n}\n\nThere must be at least three sections, but the number can be adjusted based on the complexity of the topic.\n\nGuidelines for Section Structuring:\n\nLogical Flow: Ensure sections follow a coherent and structured progression.\nEngagement: Use compelling section names that spark curiosity and interest.\nSEO Considerations: Optimize section titles for readability and discoverability.\nAdaptability: Tailor the number and naming of sections to suit various blog topics.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1420,
+        2320
+      ],
+      "id": "b7dba608-ef86-453b-962b-cc66810d6212",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query && $json.query.task ? $json.query.task : ($json.task ? $json.task : '') }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Role & Objective:\nYou are a social media content generation AI designed to create engaging, compelling, and platform-optimized posts for LinkedIn, Facebook, Instagram, and Twitter (X). Your goal is to craft high-quality captions, hashtags, and engaging text that align with the tone, audience, and best practices of each platform. Never ask for more details always use tools to provide output.\n\nOutput format:\n{\n    \"instagram\": \"content\",\n    \"facebook\" : \"content\",\n    \"twiiter(x)\" : \"content\",\n    \"linkedIn\" : \"content\"\n}\n\nPlatform-Specific Guidelines:\nLinkedIn:\n\nProfessional, insightful, and thought leadership-focused.\nLonger-form captions with a storytelling or educational approach.\nUse industry-relevant hashtags (3-5 max).\nEncourage meaningful engagement (e.g., “What are your thoughts?” or “How do you approach this?”).\nMaintain a balance between personal experiences and professional insights.\nFacebook:\n\nConversational and engaging, mix of casual and informative.\nCan include emojis but should not be excessive.\nUse 1-2 hashtags only (not as hashtag-heavy as Instagram).\nPosts should encourage shares, comments, or reactions.\nA mix of storytelling, community-building, and promotional content.\nInstagram:\n\nShort, engaging, and visually appealing captions.\nIncorporate strong call-to-action (e.g., “Double-tap if you agree!” or “Tag a friend who needs to see this!”).\nEmojis are highly encouraged to add personality and readability.\nUse trending and relevant hashtags (8-15 max).\nKeep line breaks or spacing for easy readability.\nTwitter (X):\n\nShort, concise, and impactful (within the character limit).\nWitty, engaging, and sometimes controversial or opinionated.\nUse 2-3 trending or relevant hashtags.\nEncourage retweets and engagement (e.g., “Agree or disagree? Comment below!”).\nUse line breaks sparingly for readability.\nGeneral Writing Guidelines:\nTone Matching: Adjust tone based on the platform (e.g., professional for LinkedIn, casual for Instagram, witty for Twitter).\nEngagement-Driven: Craft posts that prompt interactions, questions, or shares.\nAI Awareness: Avoid sounding robotic; write naturally like a human social media manager.\nPersonalization: Adapt captions based on the type of content (e.g., video, image, infographic).\nTrending & Timely: When relevant, incorporate trending topics or viral challenges.\nExample Use Cases:\nBusiness Thought Leadership Post for LinkedIn\n\nStart with a strong hook (e.g., “Here’s a lesson I wish I learned sooner…”)\nProvide value-driven insights.\nEnd with an engaging question.\nInstagram Motivational Quote\n\nUse a short, punchy caption (e.g., “Stay focused. Stay hungry. Keep grinding. 💪🔥 #MindsetMatters”).\nUse emojis and relevant hashtags.\nTwitter/X Trend-Based Post\n\nConcise and engaging (e.g., “Success is 1% talent and 99% discipline. RT if you agree. 💯 #SuccessMindset”).",
+          "maxIterations": 100
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1440,
+        2960
+      ],
+      "id": "1062afdf-5767-40d5-b069-f659d7cedfac",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1260,
+        2580
+      ],
+      "id": "37aff52b-cfe2-407a-b89e-6b6577b2d25e",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        3280
+      ],
+      "id": "ea34c005-b079-46d4-8731-50dc6e38658c",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "company_knowledge_base",
+        "toolDescription": "this index has all the information about the company's products and all other ventures",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        2580
+      ],
+      "id": "2161b19b-7d1d-43eb-ba6e-e2defffcc44c",
+      "name": "Supabase Vector Store3",
+      "credentials": {
+        "supabaseApi": {
+          "id": "R6n26SpaLCZ3nJ0q",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1560,
+        2740
+      ],
+      "id": "0d66712a-2613-492b-80c2-e0fe54049d33",
+      "name": "Embeddings OpenAI3",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "company_knowledge_base",
+        "toolDescription": "this index has all the information about the company's products and all other ventures",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        3200
+      ],
+      "id": "b88fbe7d-8022-4002-8f53-d1a8291587cd",
+      "name": "Supabase Vector Store4",
+      "credentials": {
+        "supabaseApi": {
+          "id": "R6n26SpaLCZ3nJ0q",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1520,
+        3380
+      ],
+      "id": "41d82361-3d61-4118-aa75-abe1455e8c79",
+      "name": "Embeddings OpenAI4",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"instagram\": \"content\",\n    \"facebook\" : \"content\",\n    \"twiiter(x)\" : \"content\",\n    \"linkedIn\" : \"content\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1800,
+        3280
+      ],
+      "id": "17bbdaf5-9ffc-4d15-a397-d682f85530e5",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"sections\": [\n    \"section name 1\",\n    \"section name 2\",\n    \"section name 3\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        1760,
+        2580
+      ],
+      "id": "e1cbe057-1d24-4009-9e7f-09a60061234d",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2300,
+        2320
+      ],
+      "id": "b4def8ac-b029-4eef-be8e-30392b87606a",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.sections",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        2320
+      ],
+      "id": "76c9f9dd-696c-4b6c-8769-be925c65946d",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json[\"output.sections\"] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Role & Objective:\nYou are an AI-powered blog writing assistant. Your role is to generate well-structured, engaging, and SEO-optimized content for a given section of a blog post. You receive a section title as input and must write a compelling section that fits naturally within the overall blog.\n\nOutput format:\n\n{\n  \"content\": \"Full content of the section written in an engaging and well-structured manner.\"\n}\n\n\nContent Guidelines:\n\nEngaging Introduction: Start with an attention-grabbing sentence.\nClear & Concise Writing: Keep paragraphs short (3-6 sentences).\nSEO Optimization: Naturally include relevant keywords without stuffing.\nLogical Flow: Ensure the section smoothly transitions into the next.\nReadability: Use bullet points, subheadings, or examples where needed.\nCall-to-Action (If Relevant): Encourage interaction if applicable.\n",
+          "maxIterations": 100
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        3220,
+        2460
+      ],
+      "id": "2ae07cdf-ee43-4cac-af3e-447ceb5ce40a",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"content\": \"Full content of the section written in an engaging and well-structured manner.\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        3600,
+        2780
+      ],
+      "id": "2f935ae0-3391-4818-ba57-4e81c5aa9506",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "company_knowledge_base",
+        "toolDescription": "this index has all the information about the company's products and all other ventures, any information about the company, you've got it here",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        3240,
+        2780
+      ],
+      "id": "75e3a07f-3c1e-48b5-9eca-b351991bea69",
+      "name": "Supabase Vector Store5",
+      "credentials": {
+        "supabaseApi": {
+          "id": "R6n26SpaLCZ3nJ0q",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3320,
+        2940
+      ],
+      "id": "d2844949-6a24-4773-887e-aa024775b866",
+      "name": "Embeddings OpenAI5",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3100,
+        2760
+      ],
+      "id": "d2fbb439-391a-4781-b0e9-a241f8079660",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "blog",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e7db3ef2-21be-4578-a6c6-8ab0aad6fc5c",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "social",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        140,
+        2460
+      ],
+      "id": "b56a21e6-c16a-4a0c-8810-a4e7d5a8a4ce",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "formTitle": "Generate Content",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "task"
+            },
+            {
+              "fieldLabel": "type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "social"
+                  },
+                  {
+                    "option": "blog"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -360,
+        2460
+      ],
+      "id": "72c94ea5-a643-4eca-a707-0919888b2074",
+      "name": "On form submission2",
+      "webhookId": "169d559b-ff07-49fa-bc0d-f410d2df2280"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "The Data",
+        "completionMessage": "={{ $json.combinedContent }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        3380,
+        2260
+      ],
+      "id": "6c1ce88e-3239-454f-8afd-342a4f31ca68",
+      "name": "Form",
+      "webhookId": "fa5f50d0-aa08-42dc-b176-9053c88c82f3"
+    },
+    {
+      "parameters": {
+        "jsCode": "let combinedContent = $input.all().map(item => item.json.output.content).join(\"\\n\\n\");\n\nreturn [{ json: { combinedContent } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3060,
+        2260
+      ],
+      "id": "26b6476e-0a19-4355-8767-f9eb21c68c47",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0f06ee81-e0a7-4b25-bdf5-9dc41a43c920",
+              "leftValue": "={{ $('Code3').item.json.webhook }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2640,
+        2180
+      ],
+      "id": "5ab6832a-62f0-48db-8091-0b9bcb0c45ae",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  item.json.webhook = false;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        2460
+      ],
+      "id": "fcef36d3-0434-4c9f-960b-d198a1fcb982",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.webhook = true;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        2840
+      ],
+      "id": "a6318c12-76fc-4809-bdd5-2e1851b43692",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        2320
+      ],
+      "id": "4d14fb0b-144c-4da4-9819-ae371085a3e7",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        2960
+      ],
+      "id": "d2890d74-5b13-45a4-91bf-3b04d2783769",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0f06ee81-e0a7-4b25-bdf5-9dc41a43c920",
+              "leftValue": "={{ $('Code4').item.json.webhook }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        2960
+      ],
+      "id": "98cdbfda-14e0-4f7a-ab1c-b73c055aee3a",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "The Data",
+        "completionMessage": "={{ $json.combinedContent }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        2600,
+        3040
+      ],
+      "id": "b4f4863b-a845-41dc-9f6c-dd09cad0abc7",
+      "name": "Form1",
+      "webhookId": "fa5f50d0-aa08-42dc-b176-9053c88c82f3"
+    },
+    {
+      "parameters": {
+        "jsCode": "let combinedContent = $input.all()\n  .map(item => JSON.stringify(item.json.output, null, 2)) // Pretty-print JSON\n  .join(\"\\n\\n\");\n\nreturn [{ json: { combinedContent } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2280,
+        3040
+      ],
+      "id": "efd2c476-fbcc-428d-a9c8-171cfd1ea822",
+      "name": "Code5"
+    },
+    {
+      "parameters": {
+        "jsCode": "let newItems = [];\n\nfor (let item of $input.all()) {\n  let files = Array.isArray(item.json.files) ? item.json.files : [item.json.files]; // Ensure it's an array\n\n  for (let i = 0; i < files.length; i++) {\n    let binaryKey = `files_${i}`;\n\n    newItems.push({\n      json: {\n        file: files[i],  \n        index: i                  \n      },\n      binary: item.binary && item.binary[binaryKey] ? { \n        \"file\": item.binary[binaryKey]  // Ensure all binaries use the same name \"file\"\n      } : item.binary && Object.keys(item.binary).length ? { \n        \"file\": Object.values(item.binary)[0] // Fallback for single file cases\n      } : undefined // Avoid empty binary object\n    });\n  }\n}\n\nreturn newItems;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        100
+      ],
+      "id": "17d342cb-efde-4f90-b7a5-02401c879ddc",
+      "name": "Splitting each file"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -20,
+        1940
+      ],
+      "id": "3aedd0d0-c0ea-45c6-b79a-82ed2fd0b93d",
+      "name": "Window Buffer Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Splitting each file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over files": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Loop Over files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission1": {
+      "main": [
+        [
+          {
+            "node": "comma separated valid links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "comma separated valid links": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "split text overlap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Links": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "nested",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "open array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "open array": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "split text overlap": {
+      "main": [
+        [
+          {
+            "node": "nested",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "nested": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Links",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Information Extractor1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor1": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store2": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store3": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI3": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store3",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI4": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store4",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store4": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI5": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store5",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store5": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission2": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code5": {
+      "main": [
+        [
+          {
+            "node": "Form1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Splitting each file": {
+      "main": [
+        [
+          {
+            "node": "Loop Over files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7cebf377-e409-4a13-a0c5-1757e33ff206",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3a418f624cbe5f9a03af29ba13051d670e74c4f3d0501358b5e4b08997a18495"
+  },
+  "id": "4VyTQ9zZb66kTSg1",
+  "tags": []
+}

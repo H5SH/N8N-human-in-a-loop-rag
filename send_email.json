@@ -1,0 +1,174 @@
+{
+  "name": "Raheeb - send email",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "send-email",
+        "responseMode": "lastNode",
+        "responseData": "allEntries",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "afbf0231-6f15-4c9e-aab4-bed550694d55",
+      "name": "Webhook",
+      "webhookId": "de21872d-f81f-4d62-b865-556dec173ba8"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.ids",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "91bf7bb8-7013-4fcc-bc4c-245058ef3368",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        440,
+        0
+      ],
+      "id": "405bea56-45ec-4652-a7a2-800a608e6bdf",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "emails",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json[\"body.ids\"] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        780,
+        40
+      ],
+      "id": "406ca00a-6271-4723-ba79-01617f80a932",
+      "name": "Supabase",
+      "credentials": {
+        "supabaseApi": {
+          "id": "R6n26SpaLCZ3nJ0q",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.reply }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1080,
+        160
+      ],
+      "id": "996fbc4f-c02b-4efb-afc6-a555ddcb2a88",
+      "name": "Gmail",
+      "webhookId": "2b827bcd-5842-4b66-8314-0a2845914015",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "323vRyXk0dsgOi3E",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cabfb899-6e9f-422c-9708-0deb80a159b2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3a418f624cbe5f9a03af29ba13051d670e74c4f3d0501358b5e4b08997a18495"
+  },
+  "id": "ztVjnwpleAMGydrd",
+  "tags": []
+}

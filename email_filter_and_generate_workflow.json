@@ -1,0 +1,560 @@
+{
+  "name": "Raheeb - email filter and generate workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -180,
+        -1180
+      ],
+      "id": "3653ac26-e432-4076-83a0-fe94fae16ff0",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.headers[\"message-id\"] }}\n{{ $json.headers.date }}\n{{ $json.headers.from }}\n{{ $json.headers.subject }}\n\n{{ $json.text }}\n",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Role & Objective:\nYou are an AI-powered email validation assistant. Your job is to analyze incoming emails and determine whether they contain customer inquiries related to my products, services, or company. Or having any problems, asking for help or anything related to customer service\n\nYou can use company_knowledge_base as context to make an informed decision.\n\nValidation Criteria:\nThe email should contain a question or request regarding my products, services, policies, or company-related matters.\nGeneral spam, irrelevant messages, promotional content, or unrelated inquiries should not be marked as valid.\n\noutput format:\n{\n  \"valid_query\": true\n}\n\nExamples:\nValid Query (Product Inquiry):\n\"Hi, I’m interested in your product X. Can you provide more details about its features and pricing?\"\n{\n  \"valid_query\": true\n}\n\nInvalid Query (Unrelated Message):\n\"Hello, I would like to collaborate on a marketing project unrelated to your company.\"\n{\n  \"valid_query\": false\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        140,
+        -1120
+      ],
+      "id": "7c129f7d-13c5-40d8-895e-ac20e7bed9d9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -660
+      ],
+      "id": "adcbf90b-c1d9-4a65-b5b0-406dea13be81",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"valid_query\":true\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        500,
+        -660
+      ],
+      "id": "4d445698-1520-48e8-9987-3076be39f194",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1e09ceab-8990-4774-9840-228069b27e3a",
+              "leftValue": "={{ $json.output.valid_query }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        -1080
+      ],
+      "id": "81a5b4b8-4251-4f17-9ef9-5568d868f954",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Loop Over Items').item.json.headers.from }}\n{{ $('Loop Over Items').item.json.headers[\"message-id\"] }}\n{{ $('Loop Over Items').item.json.headers.subject }}\n{{ $('Loop Over Items').item.json.headers.date }}\n{{ $('Loop Over Items').item.json.text }}",
+        "options": {
+          "systemMessage": "Role & Objective:\nYou are an AI-powered email assistant responsible for responding to customer queries in a professional, helpful, and empathetic manner. Your goal is to provide clear, concise, and accurate responses that address the customer’s concerns while maintaining a friendly and professional tone. You must write a final email, not a draft, and it will be sent as-is to the customer.\n\nOutput Format:\n- The response must be a valid JSON object matching the given schema.\n- The email body must be **plain text only** (no markdown, no triple backticks, no code blocks).\n- Code snippets should be provided as **inline plain text** (e.g., `pip install langchain` instead of using a code block).\n- Newlines should be represented as `\\n` within the JSON output.\n\nOutput JSON Schema:\n```json\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"to\": {\n      \"type\": \"string\",\n      \"description\": \"Customer's email address.\"\n    },\n    \"subject\": {\n      \"type\": \"string\",\n      \"description\": \"Subject of email.\"\n    },\n    \"email\": {\n      \"type\": \"string\",\n      \"description\": \"Body of email, must be plain text with no markdown formatting.\"\n    }\n  }\n}\n",
+          "maxIterations": 100
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        860,
+        -1100
+      ],
+      "id": "d3503afb-06df-4868-a350-fd579ff4455c",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        740,
+        -640
+      ],
+      "id": "798a16e8-b1eb-4a67-885d-0375850e6b68",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "company_knowledge_base",
+        "toolDescription": "everything about the company is in here",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 10,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -840
+      ],
+      "id": "3765f0b1-0611-4505-ac8b-6325d19dc4c1",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "R6n26SpaLCZ3nJ0q",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        -660
+      ],
+      "id": "04986a29-95a5-4d41-bd3b-34aeef04e033",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "company_knowledge_base",
+        "toolDescription": "everything about the company is in here",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 10,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1,
+      "position": [
+        940,
+        -820
+      ],
+      "id": "74a677fa-3441-4d38-8e45-2cf7a2905901",
+      "name": "Supabase Vector Store2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "R6n26SpaLCZ3nJ0q",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        -620
+      ],
+      "id": "f0b9d0fa-fd14-4d9a-bab6-7041d56efe64",
+      "name": "Embeddings OpenAI2",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "emails",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "to",
+              "fieldValue": "={{ $json.output.to }}"
+            },
+            {
+              "fieldId": "subject",
+              "fieldValue": "={{ $json.output.subject }}"
+            },
+            {
+              "fieldId": "reply",
+              "fieldValue": "={{ $json.output.email }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ $('Loop Over Items').item.json.text }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "pending"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        -620
+      ],
+      "id": "5167d5a9-c710-4a94-8a22-16e125fd4ca0",
+      "name": "Supabase",
+      "credentials": {
+        "supabaseApi": {
+          "id": "R6n26SpaLCZ3nJ0q",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.output }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "to",
+              "description": "email address of customer",
+              "required": true
+            },
+            {
+              "name": "subject",
+              "description": "subject of email",
+              "required": true
+            },
+            {
+              "name": "email",
+              "description": "body of email",
+              "required": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        -860
+      ],
+      "id": "aaa174eb-40bc-4e71-83a7-e4075a4ef9c6",
+      "name": "Information Extractor1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1360,
+        -620
+      ],
+      "id": "da2c9c05-ef48-465c-b371-a2fed839dd5a",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "6grbUZtpzS9MsYIt",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -560,
+        -1180
+      ],
+      "id": "9935e521-338a-44e9-9ba9-b17421b5b64d",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "323vRyXk0dsgOi3E",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store2": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor1": {
+      "main": [
+        [
+          {
+            "node": "Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "143cfafe-22a1-461c-8a76-9efa755ed8ff",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3a418f624cbe5f9a03af29ba13051d670e74c4f3d0501358b5e4b08997a18495"
+  },
+  "id": "ggT6C21iAakiRdP6",
+  "tags": []
+}
